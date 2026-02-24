@@ -11,54 +11,58 @@ export default function Home() {
   const [mensagem, setMensagem] = useState("")
 
   const handleLogin = async (e) => {
-    e.preventDefault()
+  e.preventDefault()
 
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password: senha,
-    })
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password: senha,
+  })
 
-    if (error) {
-      setMensagem("Erro ao fazer login: " + error.message)
-      return
-    }
-
-    const userId = data.user.id
-
-    const { data: profile, error: profileError } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", userId)
-      .single()
-
-    if (profileError || !profile) {
-      setMensagem("Perfil não encontrado.")
-      return
-    }
-
-    if (profile.status !== "active") {
-      setMensagem("Seu cadastro ainda não foi ativado.")
-      return
-    }
-
-    // 🔥 REDIRECIONAMENTO POR ROLE
-    switch (profile.role) {
-      case "admin":
-        navigate("/admin")
-        break
-      case "arbitro":
-        navigate("/arbitro")
-        break
-      case "monitor":
-        navigate("/monitor")
-        break
-      case "tecnico":
-        navigate("/tecnico")
-        break
-      default:
-        setMensagem("Role inválida.")
-    }
+  if (error) {
+    setMensagem("Erro ao fazer login: " + error.message)
+    return
   }
+
+  if (!data?.user) {
+    setMensagem("Erro ao obter usuário.")
+    return
+  }
+
+  const userId = data.user.id
+
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", userId)
+    .single()
+
+  if (profileError || !profile) {
+    setMensagem("Perfil não encontrado.")
+    return
+  }
+
+  if (profile.status !== "active") {
+    setMensagem("Seu cadastro ainda não foi ativado.")
+    return
+  }
+
+  switch (profile.role) {
+    case "admin":
+      navigate("/admin")
+      break
+    case "arbitro":
+      navigate("/arbitro")
+      break
+    case "monitor":
+      navigate("/monitor")
+      break
+    case "tecnico":
+      navigate("/tecnico")
+      break
+    default:
+      setMensagem("Role inválida.")
+  }
+}
 
   return (
     <div className="container mt-5">

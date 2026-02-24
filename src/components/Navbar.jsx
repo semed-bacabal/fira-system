@@ -55,9 +55,14 @@ export default function Navbar() {
   }, [])
 
   const handleLogout = async () => {
-    await supabase.auth.signOut()
-    navigate("/")
+  const { error } = await supabase.auth.signOut()
+
+  if (!error) {
+    setUser(null)
+    setProfile(null)
+    navigate("/", { replace: true })
   }
+}
 
   return (
     <nav className="navbar navbar-expand-lg navbar-dark bg-dark px-4">

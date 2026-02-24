@@ -11,8 +11,8 @@ export default function ProtectedRoute({ children, allowedRoles }) {
 
     const checkAccess = async () => {
 
-      const { data } = await supabase.auth.getSession()
-      const user = data.session?.user
+      const { data: userData } = await supabase.auth.getUser()
+      const user = userData?.user
 
       if (!user) {
         setAuthorized(false)
@@ -43,7 +43,7 @@ export default function ProtectedRoute({ children, allowedRoles }) {
 
     checkAccess()
 
-  }, [])
+  }, [allowedRoles])
 
   if (loading) return null
 
