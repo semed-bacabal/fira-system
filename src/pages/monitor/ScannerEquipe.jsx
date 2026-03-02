@@ -1,59 +1,76 @@
-import { useEffect } from "react"
+import { useEffect, useRef } from "react"
 import { useNavigate } from "react-router-dom"
 import { Html5Qrcode } from "html5-qrcode"
 
 export default function ScannerEquipe() {
 
   const navigate = useNavigate()
+  const scannerRef = useRef(null)
+  const startedRef = useRef(false)
 
   useEffect(() => {
 
-    let scanner
-
     const startCamera = async () => {
-
       try {
 
-        const cameras = await Html5Qrcode.getCameras()
+        if (startedRef.current) return
+        startedRef.current = true
 
-        if (cameras && cameras.length) {
+        scannerRef.current = new Html5Qrcode("reader")
 
-          scanner = new Html5Qrcode("reader")
+        await scannerRef.current.start(
+          { facingMode: "environment" },
+          {
+            fps: 10,
+            qrbox: { width: 250, height: 250 }
+          },
+          (decodedText) => {
 
-          await scanner.start(
-            cameras[0].id,   // usa câmera real do dispositivo
-            {
-              fps: 10,
-              qrbox: 250
-            },
-            (decodedText) => {
-              scanner.stop()
-              navigate(`/monitor/equipe/${decodedText}`)
-            }
-          )
-        }
+            let token = decodedText
+
+            try {
+              if (decodedText.startsWith("http")) {
+                const url = new URL(decodedText)
+                const partes = url.pathname.split("/").filter(Boolean)
+                token = partes[partes.length - 1]
+              }
+            } catch {}
+
+            // Para o scanner com segurança
+            scannerRef.current?.stop().catch(() => {})
+
+            // Redireciona para a rota correta do monitor
+            navigate(`/monitor/equipe/${token}`)
+          },
+          () => {}
+        )
 
       } catch (err) {
         console.error("Erro ao acessar câmera:", err)
       }
     }
 
-    setTimeout(() => {
-      startCamera()
-    }, 300)
+    startCamera()
 
     return () => {
-      if (scanner) {
-        scanner.stop().catch(() => {})
+      if (scannerRef.current?.isScanning) {
+        scannerRef.current.stop().catch(() => {})
       }
     }
 
-  }, [])
+  }, [navigate])
 
   return (
-    <div className="container mt-4">
-      <h3>Escanear QR Code</h3>
-      <div id="reader" style={{ width: "100%" }} />
+    <div className="container mt-4 text-center">
+      <h3 className="mb-3">Escanear QR Code</h3>
+      <div
+        id="reader"
+        style={{
+          width: "100%",
+          maxWidth: "400px",
+          margin: "0 auto"
+        }}
+      />
     </div>
   )
 }

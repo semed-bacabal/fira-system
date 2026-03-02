@@ -14,31 +14,36 @@ export default function EquipeDetalheMonitor() {
 
     const carregarEquipe = async () => {
 
-      const { data: equipeData } = await supabase
-        .from("teams")
-        .select("*")
-        .eq("id", id)
-        .single()
+  // 1️⃣ Busca equipe pelo qr_token
+  const { data: equipeData } = await supabase
+    .from("teams")
+    .select("*")
+    .eq("qr_token", id)
+    .single()
 
-      setEquipe(equipeData)
+  if (!equipeData) return
 
-      const { data: membros } = await supabase
-        .from("team_members")
-        .select("*")
-        .eq("team_id", id)
+  setEquipe(equipeData)
 
-      setParticipantes(membros)
+  // 2️⃣ Agora busca membros usando o ID REAL da equipe
+  const { data: membros } = await supabase
+    .from("team_members")
+    .select("*")
+    .eq("team_id", equipeData.id)
 
-      if (equipeData?.tecnico_id) {
-        const { data: tecnicoData } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", equipeData.tecnico_id)
-          .single()
+  setParticipantes(membros || [])
 
-        setTecnico(tecnicoData)
-      }
-    }
+  // 3️⃣ Busca técnico
+  if (equipeData.tecnico_id) {
+    const { data: tecnicoData } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", equipeData.tecnico_id)
+      .single()
+
+    setTecnico(tecnicoData)
+  }
+}
 
     carregarEquipe()
 
