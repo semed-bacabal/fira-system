@@ -67,10 +67,10 @@ export default function ScannerEquipe() {
         id="reader"
         style={{
           width: "100%",
-          maxWidth: "400px",
+          maxWidth: "300px",
           margin: "0 auto"
         }}
       />
     </div>
   )
-}
+} 
