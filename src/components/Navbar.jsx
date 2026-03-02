@@ -77,7 +77,7 @@ export default function Navbar() {
             <Link to="/" className="btn btn-outline-light">
               Login
             </Link>
-            <Link to="/" className="btn btn-warning">
+            <Link to="/cadastro" className="btn btn-warning">
               Cadastro
             </Link>
           </>

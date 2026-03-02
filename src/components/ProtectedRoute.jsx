@@ -4,49 +4,53 @@ import { supabase } from "../services/supabaseClient"
 
 export default function ProtectedRoute({ children, allowedRoles }) {
 
-  const [loading, setLoading] = useState(true)
-  const [authorized, setAuthorized] = useState(false)
+  const [authorized, setAuthorized] = useState(null)
 
   useEffect(() => {
 
     const checkAccess = async () => {
 
-      const { data: userData } = await supabase.auth.getUser()
-      const user = userData?.user
+      const { data } = await supabase.auth.getSession()
+      const user = data.session?.user
 
       if (!user) {
         setAuthorized(false)
-        setLoading(false)
         return
       }
 
-      const { data: profile } = await supabase
+      const { data: profile, error } = await supabase
         .from("profiles")
         .select("role, status")
         .eq("id", user.id)
         .single()
 
-      if (!profile || profile.status !== "active") {
+      if (error || !profile) {
         setAuthorized(false)
-        setLoading(false)
         return
       }
 
+      // 🔒 Mantém sua regra de status
+      if (profile.status !== "active") {
+        setAuthorized(false)
+        return
+      }
+
+      // 🔒 Mantém sua regra de roles
       if (allowedRoles.includes(profile.role)) {
         setAuthorized(true)
       } else {
         setAuthorized(false)
       }
-
-      setLoading(false)
     }
 
     checkAccess()
 
   }, [allowedRoles])
 
-  if (loading) return null
+  // Enquanto verifica sessão
+  if (authorized === null) return null
 
+  // Se não autorizado
   if (!authorized) return <Navigate to="/" replace />
 
   return children

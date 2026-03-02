@@ -10,6 +10,8 @@ import Admin from "./pages/admin/AdminDashboard"
 import Arbitro from "./pages/arbitro/ArbitroDashboard"
 import Monitor from "./pages/monitor/MonitorDashboard"
 import Tecnico from "./pages/tecnico/TecnicoDashboard"
+import ScannerEquipe from "./pages/monitor/ScannerEquipe"
+import EquipeDetalheMonitor from "./pages/monitor/EquipeDetalheMonitor"
 
 function App() {
   return (
@@ -62,6 +64,24 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={["tecnico"]}>
               <Tecnico />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/monitor/scanner"
+          element={
+            <ProtectedRoute allowedRoles={["monitor"]}>
+              <ScannerEquipe />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/monitor/equipe/:id"
+          element={
+            <ProtectedRoute allowedRoles={["monitor"]}>
+              <EquipeDetalheMonitor />
             </ProtectedRoute>
           }
         />
