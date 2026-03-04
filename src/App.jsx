@@ -12,6 +12,10 @@ import Monitor from "./pages/monitor/MonitorDashboard"
 import Tecnico from "./pages/tecnico/TecnicoDashboard"
 import ScannerEquipe from "./pages/monitor/ScannerEquipe"
 import EquipeDetalheMonitor from "./pages/monitor/EquipeDetalheMonitor"
+import ArbitroCategorias from "./pages/arbitro/ArbitroCategorias"
+import ArbitroProvas from "./pages/arbitro/ArbitroProvas"
+import ArbitroEquipes from "./pages/arbitro/ArbitroEquipes"
+import ArbitroAvaliacao from "./pages/arbitro/ArbitroAvaliacao"
 
 function App() {
   return (
@@ -41,14 +45,7 @@ function App() {
           }
         />
 
-        <Route
-          path="/arbitro"
-          element={
-            <ProtectedRoute allowedRoles={["arbitro"]}>
-              <Arbitro />
-            </ProtectedRoute>
-          }
-        />
+        <Route path="/arbitro" element={<Arbitro />} />
 
         <Route
           path="/monitor"
@@ -86,6 +83,41 @@ function App() {
           }
         />
 
+        <Route
+          path="/arbitro/categorias/:eventoId"
+          element={
+            <ProtectedRoute allowedRoles={["arbitro"]}>
+              <ArbitroCategorias />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/arbitro/provas/:eventoId/:categoriaId"
+          element={
+            <ProtectedRoute allowedRoles={["arbitro"]}>
+              <ArbitroProvas />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/arbitro/equipes/:eventoId/:categoriaId/:provaId"
+          element={
+            <ProtectedRoute allowedRoles={["arbitro"]}>
+              <ArbitroEquipes />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/arbitro/avaliar/:eventoId/:categoriaId/:provaId/:equipeId"
+          element={
+            <ProtectedRoute allowedRoles={["arbitro"]}>
+              <ArbitroAvaliacao />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
     </BrowserRouter>
   )
