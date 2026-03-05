@@ -16,6 +16,7 @@ import ArbitroCategorias from "./pages/arbitro/ArbitroCategorias"
 import ArbitroProvas from "./pages/arbitro/ArbitroProvas"
 import ArbitroEquipes from "./pages/arbitro/ArbitroEquipes"
 import ArbitroAvaliacao from "./pages/arbitro/ArbitroAvaliacao"
+import PlacarAoVivo from "./pages/placar/PlacarAoVivo"
 
 function App() {
   return (
@@ -117,6 +118,11 @@ function App() {
               <ArbitroAvaliacao />
             </ProtectedRoute>
           }
+        />
+
+        <Route
+          path="/placar/:provaId"
+          element={<PlacarAoVivo />}
         />
       </Routes>
     </BrowserRouter>

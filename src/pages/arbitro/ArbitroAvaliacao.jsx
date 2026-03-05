@@ -90,7 +90,7 @@ export default function ArbitroAvaliacao() {
       {
         team_id: equipeId,
         prova_id: provaData.id,
-        arbitro_id: user.id, // 👈 AQUI ESTÁ A CORREÇÃO
+        arbitro_id: user.id, 
         nota: parseFloat(nota),
         tempo: tempo
       }
@@ -146,7 +146,10 @@ export default function ArbitroAvaliacao() {
 
       <br />
 
-      <button onClick={salvarAvaliacao} disabled={salvando}>
+      <button
+        onClick={salvarAvaliacao}
+        disabled={salvando || rodando || tempo === 0}
+      >
         {salvando ? "Salvando..." : "Salvar Avaliação"}
       </button>
 

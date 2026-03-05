@@ -11,7 +11,7 @@ export default function EquipeDetalhe() {
   const [nome, setNome] = useState("")
   const [cpf, setCpf] = useState("")
   const [dataNascimento, setDataNascimento] = useState("")
-  const [foto, setFoto] = useState(null) // ✅ NOVO STATE
+  const [foto, setFoto] = useState(null)
   const [mensagem, setMensagem] = useState("")
 
   useEffect(() => {
@@ -76,7 +76,7 @@ export default function EquipeDetalhe() {
           nome,
           cpf,
           data_nascimento: dataNascimento,
-          foto_url: publicUrlData.publicUrl // ✅ SALVA URL
+          foto_url: publicUrlData.publicUrl 
         }
       ])
 
@@ -145,7 +145,7 @@ export default function EquipeDetalhe() {
         />
 
     <p className="mt-3 text-muted">
-      Apresente este QR Code ao Monitor para validação
+      Apresente este QR Code ao Monitor
     </p>
   </div>
 )}
@@ -178,7 +178,6 @@ export default function EquipeDetalhe() {
             required
           />
 
-          {/* ✅ INPUT DE FOTO ADICIONADO */}
           <input
             type="file"
             className="form-control mb-2"
