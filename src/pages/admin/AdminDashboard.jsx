@@ -1,85 +1,96 @@
-import { useEffect, useState } from "react"
-import { supabase } from "../../services/supabaseClient"
+import { useState } from "react"
+
+import AdminUsuarios from "./AdminUsuarios"
+import AdminEventos from "./AdminEventos"
+import AdminCategorias from "./AdminCategorias"
+import AdminEquipes from "./AdminEquipes"
+import AdminProvas from "./AdminProvas"
+import AdminGerenciarGrupos from "./AdminGerenciarGrupos"
+import AdminGerenciarPlayoffs from "./AdminGerenciarPlayoffs"
+import AdminGrupos from "./AdminGrupos"
 
 export default function AdminDashboard() {
 
-  const [usuarios, setUsuarios] = useState([])
+  const [pagina, setPagina] = useState("eventos")
 
-  useEffect(() => {
-    fetchUsuarios()
-  }, [])
-
-  const fetchUsuarios = async () => {
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("*")
-
-    if (!error) {
-      setUsuarios(data)
-    }
-  }
-
-  const handleUpdate = async (id, campo, valor) => {
-    await supabase
-      .from("profiles")
-      .update({ [campo]: valor })
-      .eq("id", id)
-
-    fetchUsuarios()
-  }
+  const botaoClasse = (nomePagina) =>
+    `btn ${pagina === nomePagina ? "btn-primary" : "btn-secondary"}`
 
   return (
-    <div className="container mt-5">
-      <h2>Painel do Administrador</h2>
 
-      <table className="table mt-4">
-        <thead>
-          <tr>
-            <th>Nome</th>
-            <th>CPF</th>
-            <th>Status</th>
-            <th>Role</th>
-          </tr>
-        </thead>
-        <tbody>
-          {usuarios.map((user) => (
-            <tr key={user.id}>
-              <td>{user.nome}</td>
-              <td>{user.cpf}</td>
+    <div className="container mt-4">
 
-              <td>
-                <select
-                  className="form-select"
-                  value={user.status}
-                  onChange={(e) =>
-                    handleUpdate(user.id, "status", e.target.value)
-                  }
-                >
-                  <option value="pending">pending</option>
-                  <option value="active">active</option>
-                  <option value="inactive">inactive</option>
-                </select>
-              </td>
+      <h2>Painel Administrativo</h2>
 
-              <td>
-                <select
-                  className="form-select"
-                  value={user.role}
-                  onChange={(e) =>
-                    handleUpdate(user.id, "role", e.target.value)
-                  }
-                >
-                  <option value="admin">admin</option>
-                  <option value="arbitro">arbitro</option>
-                  <option value="monitor">monitor</option>
-                  <option value="tecnico">tecnico</option>
-                </select>
-              </td>
+      <div className="d-flex gap-2 mt-4 mb-4 flex-wrap">
 
-            </tr>
-          ))}
-        </tbody>
-      </table>
+        <button
+          className={botaoClasse("eventos")}
+          onClick={() => setPagina("eventos")}
+        >
+          Eventos
+        </button>
+
+        <button
+          className={botaoClasse("categorias")}
+          onClick={() => setPagina("categorias")}
+        >
+          Categorias
+        </button>
+
+        <button
+          className={botaoClasse("equipes")}
+          onClick={() => setPagina("equipes")}
+        >
+          Equipes
+        </button>
+
+        <button
+          className={botaoClasse("provas")}
+          onClick={() => setPagina("provas")}admin
+        >
+          Provas
+        </button>
+
+        <button
+          className={botaoClasse("grupos")}
+          onClick={() => setPagina("grupos")}
+        >
+          Grupos
+        </button>
+
+        <button
+          className={botaoClasse("gerenciarGrupos")}
+          onClick={()=>setPagina("gerenciarGrupos")}
+        >
+          Gerenciar Grupos
+        </button>
+
+        <button
+          className={botaoClasse("gerenciarPlayoffs")}
+          onClick={()=>setPagina("gerenciarPlayoffs")}
+        >
+          Gerenciar Playoffs
+        </button>
+
+        <button
+          className={botaoClasse("usuarios")}
+          onClick={() => setPagina("usuarios")}
+        >
+          Usuários
+        </button>
+
+      </div>
+
+      {pagina === "eventos" && <AdminEventos />}
+      {pagina === "categorias" && <AdminCategorias />}
+      {pagina === "equipes" && <AdminEquipes />}
+      {pagina === "provas" && <AdminProvas />}
+      {pagina === "grupos" && <AdminGrupos />}
+      {pagina === "gerenciarGrupos" && <AdminGerenciarGrupos />}
+      {pagina === "gerenciarPlayoffs" && <AdminGerenciarPlayoffs />}
+      {pagina === "usuarios" && <AdminUsuarios />}
+
     </div>
   )
 }

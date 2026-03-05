@@ -12,34 +12,47 @@ export default function ArbitroEquipes() {
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    if (categoriaId) {
+    if (provaId) {
       buscarEquipes()
     }
-  }, [categoriaId])
+  }, [provaId])
 
   const buscarEquipes = async () => {
+
     try {
+
       setLoading(true)
 
-      // 🔹 Buscar equipes da categoria
       const { data, error } = await supabase
-        .from("teams")
-        .select("id, nome, categoria_id")
-        .eq("categoria_id", categoriaId)
+        .from("team_groups")
+        .select(`
+          team_id,
+          teams(id,nome),
+          groups!inner(prova_id)
+        `)
+        .eq("groups.prova_id", provaId)
 
       if (error) {
         console.log("Erro ao buscar equipes:", error)
         setEquipes([])
-      } else {
-        setEquipes(data || [])
+        return
       }
 
+      const lista = data.map(item => item.teams)
+
+      setEquipes(lista)
+
     } catch (err) {
+
       console.log("Erro geral:", err)
       setEquipes([])
+
     } finally {
+
       setLoading(false)
+
     }
+
   }
 
   const equipesFiltradas = equipes.filter(e =>
@@ -47,6 +60,7 @@ export default function ArbitroEquipes() {
   )
 
   return (
+
     <div className="container mt-4">
 
       <h3>Selecionar Equipe</h3>
@@ -66,7 +80,9 @@ export default function ArbitroEquipes() {
       )}
 
       <div className="list-group">
+
         {equipesFiltradas.map((equipe) => (
+
           <button
             key={equipe.id}
             className="list-group-item list-group-item-action"
@@ -76,9 +92,13 @@ export default function ArbitroEquipes() {
           >
             {equipe.nome}
           </button>
+
         ))}
+
       </div>
 
     </div>
+
   )
+
 }

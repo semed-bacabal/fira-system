@@ -124,6 +124,7 @@ function App() {
           path="/placar/:provaId"
           element={<PlacarAoVivo />}
         />
+        
       </Routes>
     </BrowserRouter>
   )
