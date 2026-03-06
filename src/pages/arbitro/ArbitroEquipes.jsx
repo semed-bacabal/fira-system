@@ -10,10 +10,12 @@ export default function ArbitroEquipes() {
   const [equipes, setEquipes] = useState([])
   const [busca, setBusca] = useState("")
   const [loading, setLoading] = useState(false)
+  const [temPlayoff, setTemPlayoff] = useState(false)
 
   useEffect(() => {
     if (provaId) {
       buscarEquipes()
+      verificarPlayoffs()
     }
   }, [provaId])
 
@@ -55,9 +57,26 @@ export default function ArbitroEquipes() {
 
   }
 
+
+  const verificarPlayoffs = async () => {
+
+    const { data } = await supabase
+      .from("matches")
+      .select("id")
+      .eq("prova_id", provaId)
+      .limit(1)
+
+    if (data && data.length > 0) {
+      setTemPlayoff(true)
+    }
+
+  }
+
+
   const equipesFiltradas = equipes.filter(e =>
     e.nome.toLowerCase().includes(busca.toLowerCase())
   )
+
 
   return (
 
@@ -96,6 +115,22 @@ export default function ArbitroEquipes() {
         ))}
 
       </div>
+
+
+      {temPlayoff && (
+
+        <div className="mt-4">
+
+          <button
+            className="btn btn-warning w-100"
+            onClick={() => navigate(`/arbitro/playoffs/${provaId}`)}
+          >
+            ⚔️ Avaliar Playoffs
+          </button>
+
+        </div>
+
+      )}
 
     </div>
 

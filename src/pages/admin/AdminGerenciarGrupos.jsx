@@ -80,32 +80,36 @@ export default function AdminGerenciarGrupos() {
 
   async function fetchDados(){
 
-    const {data} = await supabase
-      .from("team_groups")
-      .select(`
-        group_id,
-        seed,
-        teams(id,nome)
-      `)
+  if(!provaId) return
 
-    const mapa = {}
+  const {data} = await supabase
+    .from("team_groups")
+    .select(`
+      group_id,
+      seed,
+      teams(id,nome),
+      groups!inner(prova_id)
+    `)
+    .eq("groups.prova_id", provaId)
 
-    data?.forEach(item=>{
+  const mapa = {}
 
-      if(!mapa[item.group_id]){
-        mapa[item.group_id] = []
-      }
+  data?.forEach(item=>{
 
-      mapa[item.group_id].push({
-        ...item.teams,
-        seed:item.seed
-      })
+    if(!mapa[item.group_id]){
+      mapa[item.group_id] = []
+    }
 
+    mapa[item.group_id].push({
+      ...item.teams,
+      seed:item.seed
     })
 
-    setDados(mapa)
+  })
 
-  }
+  setDados(mapa)
+
+}
 
   async function removerEquipe(teamId){
 

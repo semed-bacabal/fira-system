@@ -17,6 +17,8 @@ import ArbitroProvas from "./pages/arbitro/ArbitroProvas"
 import ArbitroEquipes from "./pages/arbitro/ArbitroEquipes"
 import ArbitroAvaliacao from "./pages/arbitro/ArbitroAvaliacao"
 import PlacarAoVivo from "./pages/placar/PlacarAoVivo"
+import ArbitroPlayoffs from "./pages/arbitro/ArbitroPlayoffs"
+import PlacarPlayoffs from "./pages/placar/PlacarPlayoffs"
 
 function App() {
   return (
@@ -121,10 +123,24 @@ function App() {
         />
 
         <Route
-          path="/placar/:provaId"
+          path="/arbitro/playoffs/:provaId"
+          element={
+            <ProtectedRoute allowedRoles={["arbitro"]}>
+              <ArbitroPlayoffs />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/placar"
           element={<PlacarAoVivo />}
         />
-        
+
+        <Route
+          path="/placar2"
+          element={<PlacarPlayoffs />}
+        />
+
       </Routes>
     </BrowserRouter>
   )

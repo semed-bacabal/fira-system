@@ -1,192 +1,246 @@
 import { useEffect, useState } from "react"
-import { useParams } from "react-router-dom"
 import { supabase } from "../../services/supabaseClient"
-import { motion, AnimatePresence } from "framer-motion"
 
-export default function PlacarAoVivo() {
+export default function PlacarAoVivo(){
 
-  const { provaId } = useParams()
+  const [eventos,setEventos] = useState([])
+  const [categorias,setCategorias] = useState([])
+  const [provas,setProvas] = useState([])
 
-  const [grupos, setGrupos] = useState([])
-  const [placar, setPlacar] = useState({})
+  const [eventoId,setEventoId] = useState("")
+  const [categoriaId,setCategoriaId] = useState("")
+  const [provaId,setProvaId] = useState("")
 
-  useEffect(() => {
-    buscarGrupos()
-  }, [provaId])
+  const [ranking,setRanking] = useState([])
+  const [animar,setAnimar] = useState(false)
 
-  useEffect(() => {
-    if (grupos.length > 0) escutarRealtime()
-  }, [grupos])
+  useEffect(()=>{
+    fetchEventos()
+  },[])
 
-  async function buscarGrupos() {
+  useEffect(()=>{
+    if(eventoId){
+      fetchCategorias()
+      fetchProvas()
+    }
+  },[eventoId])
 
-    const { data } = await supabase
-      .from("groups")
-      .select("*")
-      .eq("prova_id", provaId)
 
-    setGrupos(data || [])
+  useEffect(()=>{
 
-    data?.forEach(g => buscarRankingGrupo(g.id))
-  }
+    if(!provaId) return
 
-  async function buscarRankingGrupo(groupId) {
+    fetchRanking()
 
-    const { data } = await supabase.rpc("ranking_grupo", {
-      group_id_param: groupId
-    })
+    const channel = supabase
+      .channel("placar-scores")
 
-    setPlacar(prev => ({
-      ...prev,
-      [groupId]: data
-    }))
-  }
-
-  function escutarRealtime() {
-
-    supabase
-      .channel("placar-live")
       .on(
         "postgres_changes",
         {
-          event: "*",
-          schema: "public",
-          table: "scores"
+          event:"*",
+          schema:"public",
+          table:"scores"
         },
-        payload => {
 
-          const teamId = payload.new?.team_id
-
-          grupos.forEach(g => {
-            buscarRankingGrupo(g.id)
-          })
-
+        payload=>{
+          fetchRanking()
         }
+
       )
+
       .subscribe()
+
+    return ()=> supabase.removeChannel(channel)
+
+  },[provaId])
+
+
+  async function fetchEventos(){
+
+    const {data} = await supabase
+      .from("events")
+      .select("*")
+      .order("nome")
+
+    setEventos(data || [])
+
   }
 
-  function medalha(pos) {
 
-    if (pos === 1) return "🥇"
-    if (pos === 2) return "🥈"
-    if (pos === 3) return "🥉"
-    return pos
+  async function fetchCategorias(){
+
+    const {data} = await supabase
+      .from("categories")
+      .select("*")
+      .eq("event_id",eventoId)
+      .order("nome")
+
+    setCategorias(data || [])
+
   }
 
-  return (
 
-    <div style={{ padding: 40, background: "#111", minHeight: "100vh", color: "#fff" }}>
+  async function fetchProvas(){
 
-      <h1 style={{ textAlign: "center", marginBottom: 40 }}>
-        PLACAR AO VIVO
-      </h1>
+    const {data} = await supabase
+      .from("provas")
+      .select("*")
+      .eq("event_id",eventoId)
+      .order("nome")
 
-      <div style={{ display: "flex", gap: 40, justifyContent: "center" }}>
+    setProvas(data || [])
 
-        {grupos.map(grupo => (
+  }
 
-          <div key={grupo.id} style={{ width: 420 }}>
 
-            <h2 style={{ textAlign: "center" }}>
-              {grupo.nome}
-            </h2>
+  async function fetchRanking(){
 
-            <table style={{ width: "100%", marginTop: 20 }}>
+    const {data,error} = await supabase
+      .from("scores")
+      .select(`
+        team_id,
+        nota,
+        tempo,
+        teams(nome)
+      `)
+      .eq("prova_id",provaId)
 
-              <thead>
-                <tr>
-                  <th>Pos</th>
-                  <th>Equipe</th>
-                  <th>Nota</th>
-                  <th>Tempo</th>
-                </tr>
-              </thead>
+    if(error){
+      console.log(error)
+      return
+    }
 
-              <tbody>
+    const ordenado = data
+      .map(r=>({
+        ...r,
+        equipe:r.teams?.nome
+      }))
+      .sort((a,b)=>{
+        if(b.nota !== a.nota) return b.nota - a.nota
+        return a.tempo - b.tempo
+      })
 
-            <AnimatePresence>
+    setRanking(ordenado)
 
-              {placar[grupo.id]?.map((team, index) => {
+    setAnimar(true)
 
-                const maxNota = placar[grupo.id][0]?.total_nota || 1
-                const larguraBarra = (team.total_nota / maxNota) * 100
+    setTimeout(()=>{
+      setAnimar(false)
+    },600)
 
-                return (
+  }
 
-                  <motion.tr
-                    key={team.team_id}
-                    layout
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4 }}
-                    style={{
-                      background: team.posicao === 1 ? "#1f2937" : "transparent",
-                      fontWeight: team.posicao <= 3 ? "bold" : "normal"
-                    }}
-                  >
 
-                    <td style={{ fontSize: 26 }}>
-                      {medalha(team.posicao)}
-                    </td>
 
-                    <td>{team.nome}</td>
+  return(
 
-                    <td style={{ width: 100 }}>
-                      {team.total_nota}
-                    </td>
+  <div className="placar-container">
 
-                    <td style={{ width: 100 }}>
-                      {team.total_tempo}s
-                    </td>
+    {/* filtros */}
 
-                    <td style={{ width: 200 }}>
+    <div className="placar-filtros">
 
-                      <div style={{
-                        height: 12,
-                        background: "#333",
-                        borderRadius: 6
-                      }}>
+      <select
+      value={eventoId}
+      onChange={e=>setEventoId(e.target.value)}
+      >
 
-                        <motion.div
-                          layout
-                          animate={{ width: `${larguraBarra}%` }}
-                          transition={{ duration: 0.6 }}
-                          style={{
-                            height: "100%",
-                            background:
-                              team.posicao === 1
-                                ? "#FFD700"
-                                : team.posicao === 2
-                                ? "#C0C0C0"
-                                : team.posicao === 3
-                                ? "#CD7F32"
-                                : "#00ff88",
-                            borderRadius: 6
-                          }}
-                        />
+        <option value="">Evento</option>
 
-                      </div>
+        {eventos.map(e=>(
+          <option key={e.id} value={e.id}>
+            {e.nome}
+          </option>
+        ))}
 
-                    </td>
+      </select>
 
-                  </motion.tr>
 
-                )
-              })}
+      <select
+      value={categoriaId}
+      onChange={e=>setCategoriaId(e.target.value)}
+      >
 
-            </AnimatePresence>
+        <option value="">Categoria</option>
 
-            </tbody>
+        {categorias.map(c=>(
+          <option key={c.id} value={c.id}>
+            {c.nome}
+          </option>
+        ))}
 
-            </table>
+      </select>
+
+
+      <select
+      value={provaId}
+      onChange={e=>setProvaId(e.target.value)}
+      >
+
+        <option value="">Prova</option>
+
+        {provas.map(p=>(
+          <option key={p.id} value={p.id}>
+            {p.nome}
+          </option>
+        ))}
+
+      </select>
+
+    </div>
+
+
+
+    {/* ranking */}
+
+    <div className={`placar-ranking ${animar ? "update" : ""}`}>
+
+      {ranking.map((team,index)=>{
+
+        const medalha =
+          index === 0 ? "🥇" :
+          index === 1 ? "🥈" :
+          index === 2 ? "🥉" :
+          `${index+1}º`
+
+        return(
+
+          <div
+            key={team.team_id}
+            className={`placar-linha ${index===0 ? "lider" : ""}`}
+          >
+
+            <div className="placar-pos">
+
+              {medalha}
+
+            </div>
+
+
+            <div className="placar-equipe">
+
+              {team.equipe}
+
+            </div>
+
+
+            <div className="placar-pontos">
+
+              {team.nota}
+
+            </div>
 
           </div>
 
-        ))}
+        )
 
-      </div>
+      })}
 
     </div>
+
+  </div>
+
   )
+
 }
